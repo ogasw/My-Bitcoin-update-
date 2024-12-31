@@ -1,0 +1,85 @@
+!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bitcoin Tracker</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f9;
+      margin: 0;
+      padding: 0;
+      text-align: center;
+    }
+    header {
+      background-color: #f7931a;
+      color: white;
+      padding: 20px 0;
+    }
+    #price {
+      font-size: 2em;
+      margin: 20px 0;
+    }
+    button {
+      padding: 10px 20px;
+      background-color: #f7931a;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #e67e22;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Bitcoin Price Tracker</h1>
+  </header>
+  <div id="price">Fetching...</div>
+  <button onclick="fetchPrice()">Refresh Price</button>
+
+  <script>
+    async function fetchPrice() {
+      try {
+        const response = await fetch('/api/price');
+        const data = await response.json();
+        document.getElementById('price').innerText = `1 BTC = $${data.price}`;
+      } catch (error) {
+        document.getElementById('price').innerText = 'Error fetching price.';
+      }
+    }
+    fetchPrice();
+  </script>
+</body>
+</html>
+
+
+Save this as server.js:
+
+const express = require('express');
+const axios = require('axios');
+const app = express();
+const PORT = 3000;
+
+// Serve frontend files
+app.use(express.static('public'));
+
+// API route for Bitcoin price
+app.get('/api/price', async (req, res) => {
+  try {
+    const response = await axios.get('https://api.coindesk.com/v1/bpi/currentprice/BTC.json');
+    const price = response.data.bpi.USD.rate_float.toFixed(2);
+    res.json({ price });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Error fetching Bitcoin price' });
+  }
+});
+
+// Start the server
+app.listen(PORT, () => {
+  console.log(`Server is running on http://localhost:${PORT}`);
+});
